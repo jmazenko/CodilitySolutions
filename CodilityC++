@@ -1,0 +1,709 @@
+#include "CodilityC++.h"
+#include <math.h>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <stack>
+#include <set>
+#include <map>
+using namespace std;
+
+int Brackets(string& S)
+{
+    // determine if a given string of parentheses, curly braces, and square braces is properly nested
+    stack<char> unclosed;
+    for (int i = 0; i < S.length(); i++)
+    {
+        switch (S[i])
+        {
+        case '(':
+        case '{':
+        case '[':
+            unclosed.push(S[i]);
+        case ')':
+            if (unclosed.empty() || unclosed.top() != '(')
+                return 0;
+            unclosed.pop();
+        case '}':
+            if (unclosed.empty() || unclosed.top() != '{')
+                return 0;
+            unclosed.pop();
+        case ']':
+            if (unclosed.empty() || unclosed.top() != '[')
+                return 0;
+            unclosed.pop();
+        }
+    }
+    if (!unclosed.empty())
+        return 0;
+    return 1;
+}
+
+int ChocolatesByNumbers(int N, int M)
+{
+    // you have N chocolates arranged in a circle
+    // you start eating at chocolate number 0, then advance M positions and eat chocolate at new position
+    // after you eat one chocolate, you leave an empty wrapper
+    // find number of chocolates you will eat before getting an empty wrapper
+    int X = gcd(N, M);
+    return N / X;
+}
+
+int CommonPrimeDivisors(vector<int> A, vector<int> B)
+{
+    // A and B are arrays of positive integers
+    // prime divisors of A[k] are divisors that are also prime numbers
+    // find number of positions k at which A[k] and B[k] have same set of prime divisors
+    int count = 0;
+    int x, d;
+    float adiv, bdiv;
+    for (int i = 0; i < A.size(); i++) 
+    {
+        adiv = float(A[i]);
+        bdiv = float(B[i]);
+        x = gcd(A[i], B[i]);
+        while (1)
+        {
+            d = gcd(x, (int)(adiv));
+            if (d == 1)
+                break;
+            adiv = (float)(adiv / d);
+        }
+        while (1)
+        {
+            d = gcd(x, (int)(bdiv));
+            if (d == 1)
+                break;
+            bdiv = (float)(bdiv / d);
+        }
+        if (adiv == bdiv == 1.0)
+            count++;
+    }
+    return count;
+}
+
+int CountDiv(int A, int B, int K)
+{
+    // return number of integers divisible by K in range [A..B]
+    int minValue = ((A + K - 1) / K) * K; // smallest possible divisor in range
+    if (minValue > B)
+            return 0;
+    return ((B - minValue) / K) + 1;
+}
+
+int CountFactors(int N)
+{
+    // find number of factors of N
+    int factors = 0;
+    int i = i;
+    while (i * i < N)
+    {
+        if (N % i == 0)
+            factors += 2;
+        i++;
+    }
+    if (i * i == N)
+        factors += 1;
+    return factors;
+}
+
+int* CountNonDivisible(vector<int> &A)
+{
+    // build and return array noDiv, where noDiv[k] = number of elements in A that are not divisors of element A[k]
+    map<int, set<int>> divisors;
+    for (int i = 0; i < A.size(); i++)
+    {
+        divisors[i].insert(1);
+        divisors[i].insert(A[i]);
+    }
+
+    int maxVal = *(max(A.begin(), A.end()));
+    int idx = 2;
+    int elem;
+    while (pow(idx, 2) <= maxVal)
+    {
+        elem = idx;
+        while (elem <= maxVal) 
+        {
+            if (divisors.count(elem) > 0 && divisors[elem].count(idx) == 0) 
+            {
+                divisors[elem].insert(idx);
+                divisors[elem].insert(elem/idx);
+            }
+            elem += idx;
+        }
+        idx++;
+    }
+
+    map<int, int> counter;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++) 
+    {
+        if (counter.count(*it) == 0)
+            counter[*it] = 1;
+        else
+            counter[*it] += 1;
+    }
+
+    int* noDiv = new int[A.size()];
+    int tmp;
+    for (int j = 0; j < A.size(); j++) 
+    {
+        tmp = 0;
+        for (set<int>::iterator k = divisors[A[j]].begin(); k != divisors[A[j]].end(); k++)
+            tmp += counter[*k];
+        noDiv[j] = A.size() - tmp;
+    }
+    return noDiv;
+}
+
+vector<int> CyclicRotation(vector<int>& A, int K)
+{
+    // rotate array A to the right K times
+    while (K > 0)
+    {
+        A.insert(A.begin(), A[A.size() - 1]); // push last element of A onto front of list
+        A.pop_back(); // remove last element
+        K--;
+    }
+    return A;
+}
+
+int Distinct(vector<int>& A)
+{
+    // find number of distinct elements in A
+    set<int> trimmedList;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+        trimmedList.insert(*it);
+    return trimmedList.size();
+}
+
+int Dominator(vector<int>& A)
+{
+    // if some element appears at more than half of array indices, find its first occurrence
+    if (!A.empty())
+    {
+        vector<int> B;
+        B.assign(A.begin(), A.end());
+        sort(B.begin(), B.end());
+
+        int N = A.size();
+        int candidate = B[N/2];
+        int count = 0;
+        int firstIdx = -1;
+
+        for (int i = 0; i < A.size(); i++)
+        {
+            if (A[i] == candidate)
+            {
+                count += 1;
+                if (firstIdx = -1)
+                    firstIdx = i;
+            }
+        }
+        if (count >= N/2)
+            return firstIdx;
+    }
+    return -1;
+}
+
+int FibFrog(vector<int>& A)
+{
+    // A represents spaces on a river. A[k] = 1 if there is a leaf at index k
+    // a frog is located at one bank of river(A[-1]) and wants to jump to other bank
+    // frog can only jump a distance F, where F is any Fibonacci number
+    // find minimum number of jumps for frog to cross river (or -1 if there is no way to cross)
+
+    A.push_back(1); // we simplify algorithm by recognizing that it must always be possible to step on opposite bank
+
+    vector<int> fibSet(27, 0); // max. size of A is given as 100000, and there are 26 Fibonacci numbers smaller than 100000
+    getFibFrogUpToN(fibSet, A.size());
+
+    vector<int> reachable(A.size(), -1); // reachable[k] = least number of jumps to index k, or -1 if index k is unreachable
+    for (vector<int>::iterator it = fibSet.begin(); it != fibSet.end(); it++) // find reachable leaves
+    {
+        if (A[*it - 1] == 1)
+            reachable[*it - 1] = 1;
+    }
+
+    int minIndex, minValue, prevIndex;
+    for (int i = 0; i < A.size(); i++)
+    {
+        if (A[i] == 0 || reachable[i] > 0)
+            continue;
+        minIndex = -1;
+        minValue = 100000;
+        for (vector<int>::iterator jump = fibSet.begin(); jump != fibSet.end(); jump++)
+        {
+            prevIndex = i - *jump;
+            if (prevIndex < 0)
+                break;
+            if (reachable[prevIndex] > 0 && minValue > reachable[prevIndex])
+            {
+                minValue = reachable[prevIndex];
+                minIndex = prevIndex;
+            }
+        }
+        if (minIndex != -1)
+            reachable[i] = minValue + 1;
+    }
+    return reachable[A.size() - 1];
+}
+
+int Fish(vector<int>& A, vector<int>& B)
+{
+    // there are N fish in a river. A[k] = size of fish k, while B[k] = direction (0 = upstream, 1 = downstream)
+    // when two fish moving in opposite directions meet, larger fish eats smaller fish. Calculate how many fish will stay alive
+    int survivors = 0;
+    stack<int> fishStack; // maintain stack of all fish swimming downstream
+
+    for (int i = 0; i < A.size(); i++)
+    {
+        if (B[i] == 0)
+        {
+            while (!fishStack.empty()) // large fish swimming upstream eats small fish off stack until none remain, or large fish is eaten itself
+            {
+                if (fishStack.top() > A[i])
+                    break;
+                fishStack.pop();
+            }
+            survivors++;
+        }
+        else
+            fishStack.push(A[i]); // if no downstream fish are ahead of this upstream fish, it survives
+    }
+    survivors += fishStack.size();
+    return survivors;
+}
+
+int FrogJump(int X, int Y, int D)
+{
+    // a frog is at position X and wants to reach position Y. Every jump propels frog a distance D. Find minimum number of jumps
+    return ceil(((double)X / (double)Y) / (double)D);
+}
+
+int FrogRiverOne(vector<int>& A, int X)
+{
+    // a frog is trying to jump across a river that is X spaces wide. A[k] = position where a leaf falls and stays at k seconds
+    // find earliest time at which all spaces are covered by leaves, allowing frog to cross river
+
+    set<int> spotsCovered;
+    for (int i = 0; i < A.size(); i++)
+    {
+        spotsCovered.insert(A[i]); // only works when array element is not already part of set
+        if (spotsCovered.size() == X)
+            return i;
+    }
+    return -1;
+}
+
+int* GenomicRangeQuery(string& S, vector<int>& P, vector<int>& Q)
+{
+    int* adenineLastSeen = new int[S.length()];
+    int* cytosineLastSeen = new int[S.length()];
+    int* guanineLastSeen = new int[S.length()];
+    int* thymineLastSeen = new int[S.length()];
+
+    for (int i = 0; i < S.length(); i++)
+    {
+        calcPSums(S, adenineLastSeen, 'A', i);
+        calcPSums(S, cytosineLastSeen, 'C', i);
+        calcPSums(S, guanineLastSeen, 'G', i);
+        calcPSums(S, thymineLastSeen, 'T', i);
+    }
+
+    int* answers = new int[P.size()];
+    for (int j = 0; j < P.size(); j++)
+    {
+        if (adenineLastSeen[Q[j]] > P[j])
+            answers[j] = 1;
+        else if (cytosineLastSeen[Q[j]] > P[j])
+            answers[j] = 2;
+        else if (guanineLastSeen[Q[j]] > P[j])
+            answers[j] = 3;
+        else
+            answers[j] = 4;
+    }
+    return answers;
+}
+
+void calcPSums(string& S, int* lastSeen, char C, int i)
+{
+    if (S[i] == C)
+        lastSeen[i] = i;
+    else if (i > 0)
+        lastSeen[i] = lastSeen[i - 1];
+}
+
+vector<int> Ladder(vector<int> &A, vector<int> &B)
+{
+    // a ladder has A[k] rungs. You initially step on rung 1 or rung 2, and ascend either 1 or 2 rungs with every subsequent step
+    // after your last step, you must be standing on rung number A[k], not non - existent rung above it
+    // number of ways of climbing can be large, so we take number of ways modulo 2 ^ P for some integer P
+    // build and return array results, where results[k] = (number of ways of climbing a ladder with A[k] rungs) modulo (2 ^ B[i])
+    int L = *(max(A.begin(), A.end()));
+    int pMax = *(max(B.begin(), B.end()));
+
+    vector<int> fib(L+2, 0);
+    fib[1] = 1;
+    for (int i = 2; i < L+2; i++)
+        fib[i] = (fib[i-1] + fib[i-2]) & ((1 << pMax) - 1);
+    
+    vector<int> results(A.size(), 0);
+    for (int j = 2; j < L + 2; j++)
+        results[j] = fib[A[j] + 1] & ((1 << B[j]) - 1);
+    return results;
+}
+
+vector<int> MaxCounters(int N, vector<int>& A)
+{
+    // you have N counters, each initialized to 0. If A[k] = N + 1, all counters are set to largest value of any counter
+    // if A[k] <= N, counter number A[k] is increased by one. Return an array representing outputs
+    vector<int> outputs(N, 0);
+    int maxVal = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+    {
+        if (*it == N + 1)
+        {
+            outputs.clear();
+            outputs.insert(outputs.begin(), N, maxVal);
+        }
+        else
+        {
+            outputs[*it] = outputs[*it] + 1;
+            if (outputs[*it] > maxVal)
+                maxVal = outputs[*it];
+        }
+    }
+    return outputs;
+}
+
+int MaxDoubleSliceSum(vector<int>& A)
+{
+    // suppose 0 < X < Y < Z < len(A). A double slice divides A into three parts that contain all array elements in range X-Z, except X, Y, and Z themselves
+    // according to problem constraints, neither first nor last element can appear in any double slice. Find largest sum of any double slice
+    vector<int> endHere(A.size(), 0);
+    vector<int> startHere(A.size(), 0);
+
+    for (int i = 1; i < A.size(); i++)
+        if (endHere[i - 1] + A[i] > 0)
+            endHere[i] = endHere[i - 1] + A[i];
+
+    for (int j = A.size() - 2; j > 0; j--)
+        if (startHere[j + 1] + A[j] > 0)
+            startHere[j] = startHere[j + 1] + A[j];
+
+    int maxDoubleSlice = 0;
+    for (int k = 0; k < A.size() - 1; k++)
+        if (startHere[k + 1] + endHere[k - 1] > maxDoubleSlice)
+            maxDoubleSlice = startHere[k + 1] + endHere[k - 1];
+    return maxDoubleSlice;
+}
+
+int MaxProductOfThree(vector<int>& A)
+{
+    // if A[P], A[Q], and A[R] are any three elements of A, find their greatest possible product
+    sort(A.begin(), A.end());
+    int rightEndpoint = A[A.size() - 1] * A[A.size() - 2] * A[A.size() - 3];
+    int leftEndpoint = A[0] * A[1] * A[A.size() - 1];
+    if (leftEndpoint > rightEndpoint) // max value will always be one of these two
+        return leftEndpoint;
+    return rightEndpoint;
+}
+
+int MaxProfit(vector<int>& A)
+{
+    // A[k] = price of stock share on day k. A[Q] - A[P] = net profit/loss experienced between days P and Q, where P < Q
+    // find maximum profit
+    int maxProfit = 0;
+    int minDay = 200000; // this is given as greatest possible value of any array element
+
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+    {
+        if (*it < minDay)
+            minDay = *it;
+        if (*it - minDay > maxProfit)
+            maxProfit = *it - minDay;
+    }
+    return maxProfit;
+}
+
+int MaxSliceSum(vector<int>& A)
+{
+    // find greatest possible sum of any array slice
+    if (*(max_element(A.begin(), A.end())) < 0)
+        return *(max_element(A.begin(), A.end())); // if no element is positive, we must choose highest non-positive element
+    int maxEnd, maxSlice = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+    {
+        if (maxEnd + *it > 0)
+            maxEnd += *it;
+        if (maxEnd > maxSlice)
+            maxSlice = maxEnd;
+    }
+    return maxSlice;
+}
+
+int MinAvgTwoSlice(vector<int>& A)
+{
+    // find smallest average of any slice with length 2 or higher
+    int minIndex = 0;
+    float minValue = 10001.0;
+
+    for (int i = 0; i < A.size() - 1; i++)
+    {
+        if ((float)((A[i] + A[i + 1]) / 2) < minValue)
+        {
+            minIndex = i;
+            minValue = (float)((A[i] + A[i + 1]) / 2);
+        }
+        if (i < A.size() - 2 && (float)((A[i] + A[i + 1] + A[i + 2]) / 3) < minValue)
+        {
+            minIndex = i;
+            minValue = (float)((A[i] + A[i + 1] + A[i + 2]) / 3);
+        }
+    }
+    return minIndex;
+}
+
+int MinMaxDivision(vector<int>& A, int K)
+{
+    // divide array A into K blocks of size 0 or more, then find smallest possible large sum of one block
+    int lowBound = *(max_element(A.begin(), A.end()));
+    if (K >= A.size())
+        return lowBound; // if each block has one element
+
+    int highBound = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+        highBound += *it;
+    if (K == 1)
+        return highBound; // if only one block is allowed
+
+    int maxBlockSize;
+    while (lowBound <= highBound)
+    {
+        maxBlockSize = (lowBound + highBound)/2;
+        if (blockSizeIsValid(A, K, maxBlockSize))
+            highBound = maxBlockSize - 1;
+        else
+            lowBound = maxBlockSize + 1;
+    }
+    return lowBound;
+}
+
+int MinPerimeterRectangle(int N)
+{
+    // if a rectangle has area N, find its smallest possible perimeter
+    int horiz, vert = 0;
+    int minPerim = (2 * N) + 2; // value if N is prime
+
+    int i = 1;
+    while (i * i <= N)
+    {
+        if (N % i == 0)
+        {
+            horiz = i;
+            vert = N/i;
+            if ((2 * horiz) + (2 * vert) < minPerim)
+                minPerim = (2 * horiz) + (2 * vert);
+        }
+        i++;
+    }
+    return minPerim;
+}
+
+int MissingInteger(vector<int>& A)
+{
+    // find smallest positive integer not present in A
+    vector<bool> seen;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+    {
+        if (*it > 0 && *it <= A.size())
+            seen.push_back(true);
+        else
+            seen.push_back(false);
+    }
+
+    for (int i = 0; i < A.size(); i++)
+    {
+        if (!(seen[i]))
+            return i + 1;
+    }
+    return A.size() + 1;
+}
+
+int OddOccurrencesInArray(vector<int>& A)
+{
+    //given array in which every element except one occurs an even number of times, find value of unpaired element
+    int xorValues = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+        xorValues ^= *it;
+        return xorValues;
+}
+
+int PassingCars(vector<int>& A)
+{
+    // A[k] = 0 means car k is going east; A[k] = 1 means car k is going west. Two cars pass if first is traveling east, second is traveling west
+    // find number of pairs of passing cars
+    int* pSums = new int[A.size()];
+    pSums[0] = A[0];
+    for (int i = 1; i < A.size(); i++)
+        pSums[i] = A[i] + pSums[i - 1];
+
+    int passingPairs = 0;
+    for (int j = 0; j < A.size(); j++)
+    {
+        if (!(A[j]))
+            passingPairs += pSums[A.size() - 1] - pSums[j];
+        if (passingPairs > 1000000000)
+        {
+            delete[] pSums;
+            return -1;
+        }
+    }
+    delete[] pSums;
+    return passingPairs;
+}
+
+int Peaks(vector<int>& A)
+{
+    // a peak is an array element that is greater than either of its neighbors
+    // we want to divide array into blocks of equal size, each containing at least one peak. Find greatest possible block size
+    vector<int> peaks;
+    for (int i = 1; i < A.size() - 1; i++) // find all peak positions
+    {
+        if (A[i - 1] < A[i] && A[i] > A[i + 1])
+            peaks.push_back(i);
+    }
+
+    if (peaks.empty())
+        return 0;
+
+    int blockSize, blockIndex, foundCount;
+    vector<bool> found;
+    for (int numBlocks = peaks.size() - 1; numBlocks > 0; numBlocks--) // if every block contains a single peak, number of blocks = number of peaks
+    {
+        if (peaks.size() % numBlocks == 0)
+        {
+            blockSize = A.size() / numBlocks;
+            found.insert(found.begin(), false, numBlocks);
+            foundCount = 0;
+            for (vector<int>::iterator peak = peaks.begin(); peak != peaks.end(); peak++)
+            {
+                blockIndex = (*peak) / blockSize;
+                if (!found[blockIndex])
+                {
+                    found[blockIndex] = true;
+                    foundCount++;
+                }
+            }
+            if (foundCount == numBlocks)
+                return numBlocks;
+            found.clear();
+        }
+    }
+    return 0;
+}
+
+int PermMissingElem(vector<int>& A)
+{
+    // return 1 if array A is a permutation, 0 otherwise
+    int correctXor = 0;
+    for (int i = 0; i < A.size() + 1; i++)
+        correctXor ^= i; // XOR value if no element is missing
+
+    int observedXor = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+        observedXor ^= *it;
+
+    if (!(correctXor ^ observedXor)) //if values are equal, their XOR is 0
+        return 1;
+    return 0;
+}
+
+int PermMissingElem(vector<int>& A)
+{
+    // given a permutation missing one element, find missing value
+    int correctXor = 0;
+    for (int i = 0; i < A.size() + 2; i++)
+        correctXor ^= i; // XOR value if no element was missing
+
+    int observedXor = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+        observedXor ^= *it;
+
+    return correctXor ^ observedXor;
+}
+
+int TapeEquilibrium(vector<int>& A)
+{
+    // tape is split into two portions and sum of each portion is calculated. Find smallest possible difference between sums
+    int firstSum = A[0];
+
+    int secondSum = 0;
+    for (vector<int>::iterator getSum = A.begin() + 1; getSum != A.end(); getSum++)
+        secondSum += *getSum;
+
+    int minDiff = abs(firstSum - secondSum);
+    for (vector<int>::iterator compareSums = A.begin() + 2; compareSums != A.end(); compareSums++)
+    {
+        firstSum += *compareSums;
+        secondSum -= *compareSums; // keeping track of sums this way is much more efficent than fully recalculating them at every step
+        if (abs(firstSum - secondSum) < minDiff)
+            minDiff = abs(firstSum - secondSum);
+    }
+    return minDiff;
+}
+
+int Triangle(vector<int>& A)
+{
+    // determine if there are any three elements in A that could represent side lengths of a triangle
+    sort(A.begin(), A.end());
+    for (int i = 2; i < A.size(); i++)
+    {
+        if (A[i - 1] + A[i - 2] > A[i])
+        {
+            if (A[i] + A[i - 1] > A[i - 2])
+            {
+                if (A[i] + A[i - 2] > A[i - 1])
+                    return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+bool blockSizeIsValid(vector<int>& A, int K, int maxBlockSize)
+{
+    int blockSum, blockCount = 0;
+    for (vector<int>::iterator it = A.begin(); it != A.end(); it++)
+    {
+        if (blockSum + *it > maxBlockSize)
+        {
+            blockSum = *it;
+            blockCount++;
+        }
+        else
+            blockSum += *it;
+        if (blockCount > K)
+            return false;
+    }
+    return true;
+}
+
+void getFibFrogUpToN(vector<int> &fib, int N)
+{
+    fib[1] = 1;
+    for (int i = 2; i < 27; i++) 
+    {
+        fib[i] = fib[i - 1] + fib[i - 2];
+        if (fib[i] > N)
+            return;
+    }
+}
+
+int gcd(int x, int y) // this is Euclidean algorithm to find greatest common divisor of x and y
+{
+    if (x % y == 0)
+        return y;
+    return gcd(y, x % y);
+}
